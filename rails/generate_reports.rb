@@ -20,56 +20,56 @@ class ReportGeneration
     # The headers for entities are currently not set to their RDF counterparts
     entity_headers = @entity_attributes_intersection
 
-    # Report 1
+    # Report 1 - Metadata-only records
     @csv_entities_with_metadata_only = CSV.open('entities_with_metadata_only.csv', 'wb',
       write_headers: true,
       headers: entity_headers)
 
-    # Report 2
+    # Report 2 - List of all file types
     @csv_entity_file_types = CSV.open('entity_file_types.csv', 'wb',
       write_headers: true,
       headers: ["File type"])
 
-    # Report 3
+    # Report 3 - List of records containing a zipfile
     @csv_entity_with_zip_file = CSV.open('entity_with_zip_file.csv', 'wb',
       write_headers: true,
       headers: entity_headers)
 
-    # Report 4
+    # Report 4 - List of all multi-file records
     @csv_entities_with_multiple_files = CSV.open('entities_with_multiple_files.csv', 'wb',
       write_headers: true,
       headers: entity_headers)
 
-    # Report 5 is missing
+    # Report 5 is missing - List of all records missing a required metadata field
 
-    # Report 6
+    # Report 6 - List of all community-collection pairs and all items within collections
     @csv_community_collection_entities = CSV.open('csv_community_collection_entities.csv', 'wb',
       write_headers: true,
       # Custom set of headers to include the actual path, entity type, and the
       # rest of the entity values
       headers: ['Path', 'Type'] + @entity_attributes_intersection)
 
-    # Report 7
+    # Report 7 - List of all empty collections, listing community-collection pairs
     @csv_community_collection_pair_no_entities = CSV.open('community_collection_pair_no_entities.csv', 'wb',
       write_headers: true,
       headers: ["Community Collection pair"])
 
-    # Report 8
+    # Report 8 - List of CCID-protected items
     @csv_entities_ccid_protected = CSV.open('entities_ccid_protected.csv', 'wb',
       write_headers: true,
       headers: entity_headers)
 
-    # Report 9
+    # Report 9 - List of embargoed items including embargo lift date
     @csv_entities_embargoed = CSV.open('entities_embargoed.csv', 'wb',
       write_headers: true,
       headers: entity_headers)
     
-    # Report 10
+    # Report 10 - Items with QDC descriptive metadata
     @csv_entities_with_qdc_metadata = CSV.open('entities_with_qdc_metadata.csv', 'wb',
       write_headers: true,
       headers: item_headers)
 
-    # Report 11
+    # Report 11 - Items with ETD-MS descriptive metadata
     @csv_entities_with_etd_ms_metadata = CSV.open('entities_with_etd_ms_metadata.csv', 'wb',
       write_headers: true,
       headers: thesis_headers)
