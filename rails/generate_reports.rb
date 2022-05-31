@@ -22,9 +22,10 @@ class EraAuditReportGeneration
 
     @processed_entity_count = 0
     @testing = {
-      enabled?: true,
+      enabled?: false,
       max_entities: 100
     }
+    # @curent_entity_errors = {}
 
   end
 
@@ -34,6 +35,8 @@ class EraAuditReportGeneration
     thesis_headers = @thesis_attributes.map {|key| Thesis.rdf_annotation_for_attr(key).present? ? RDF::URI(Thesis.rdf_annotation_for_attr(key).first.predicate).pname.to_s : key }
 
     Dir.mkdir(@root_directory) unless File.exists?(@root_directory)
+
+    @log_file = File.open(@root_directory + '/report.log', 'w')
 
     @report_files = {
       item: get_entity_report_files('item', item_headers),
@@ -86,20 +89,131 @@ class EraAuditReportGeneration
     }
   end
 
+  def is_entity_valid?
+
+    # if @current_entity.invalid?
+    #   @report_files[current_entity_type()][:is_valid] << get_entity_information() + [@current_entity.errors.as_json()]
+    # end
+
+    system_validation = @current_entity.valid?
+    
+    @curent_entity_errors[:system] = @current_entity.errors.messages unless system_validation
+
+    manual_validation = if current_entity_type() == :item
+      is_item_valid?()
+    elsif current_entity_type() == :thesis
+      is_thesis_valid?()
+    end
+
+    system_validation && manual_validation
+
+  end
+
+  def is_item_valid?
+    
+    valid = true
+    # creator - Checked by system
+    # subject - Checked by system
+    # created - Checked by system
+    # language - Checked by system
+    # title - Checked by system
+    # @current_entity_errors[:manual] = {} unless @current_entity_errors[:manual]
+    item_errors = {}
+    # type item_type - Checked by system
+    # rights - Checked by system
+    # Other required fields:
+    #   doi (not user-supplied, created by Jupiter when item is deposited)
+
+    unless @current_entity.doi.present?
+      item_errors[:doi] = ["cant' be blank"]
+      valid = false
+    end
+
+    #   Checked by system
+    #   sortYear - this was not required by metadata but needed for UI faceting I think (not user-supplied but rather derived from created date)
+    
+    #   Checked by system
+    #   memberOf (community_id, collection_id)
+
+
+    #   visibility (before I think this was called status, i.e. published, draft).
+    unless @current_entity.visibility.present?
+      item_errors[:visibility] = ["cant' be blank"]
+      valid = false
+    end
+    
+    @current_entity_errors[:manual] = item_errors unless valid
+
+    valid
+  end
+
+  def is_thesis_valid? 
+
+    valid = true
+    thesis_errors = {}
+    # @current_entity_errors[:manual] = {} unless @current_entity_errors[:manual]
+    # title - Checked by system
+    # dissertant (not used for items) - Checked by system
+    # graduationDate (not used for items) - Checked by system
+    # abstract (not required for items)
+    unless @current_entity.abstract.present?
+      @log_file.puts('Thesis found blank abstract')
+      thesis_errors[:abstract] = ["cant' be blank"]
+      valid = false
+    end
+
+    # type (always set to Thesis, I think)
+    # Could not find on model
+
+    # Other required fields are:
+    # Checked by system
+    #   memberOf (community_id, collection_id)
+    # Checked by system
+    #   sortYear (derived from graduationDate)
+    # Other fields that are not required by Jupiter or by our model but that are required for sharing metadata in ETD-ms format (e.g. via OAI for Library and Archives - Theses Canada) and very often requested by departments or other parties:
+    #   Degree (required for ETD-ms)
+    unless @current_entity.degree.present?
+      @log_file.puts('Thesis found blank degree')
+      thesis_errors[:degree] = ["cant' be blank"]
+      valid = false
+    end
+
+    #   Institution (required for ETD-ms)
+    unless @current_entity.institution.present?
+      @log_file.puts('Thesis found blank institution')
+      thesis_errors[:institution] = ["cant' be blank"]
+      valid = false
+    end
+    # A draft thesis has this value as degree_level, when it is not a draft it is thesis level
+    # XXX Ask Mariana about the current value and if drafts are different from published thesis
+    #   Degree level -----
+    unless @current_entity.thesis_level.present?
+      thesis_errors[:thesis_level] = ["cant' be blank"]
+      valid = false
+    end
+    #   Departments -----
+    unless @current_entity.departments.present?
+      thesis_errors[:departments] = ["cant' be blank"]
+      valid = false
+    end
+    #   Supervisor / Co-supervisor
+    unless @current_entity.supervisors.present?
+      thesis_errors[:supervisors] = ["cant' be blank"]
+      valid = false
+    end
+
+    @current_entity_errors[:manual] = thesis_errors unless valid
+
+    valid
+  end
+
   def close_files
+    @log_file.close()
     @report_files.each_value do |report|
       report.each_value do |file|
         file.close() if file
       end
     end
-  end
-
-  def get_item_information(item)
-    item.values_at(@item_attributes)
-  end
-
-  def get_thesis_information(thesis)
-    thesis.values_at(@thesis_attributes)
   end
 
   def get_entity_information
@@ -140,12 +254,14 @@ class EraAuditReportGeneration
       @report_files[current_entity_type()][:metadata_only] << get_entity_information()
     end
 
-    if @current_entity.invalid?
-      @report_files[current_entity_type()][:is_valid] << get_entity_information() + [@current_entity.errors.as_json()]
-    end
-  end
+    # XXX TODO Validation report goes here
+    # if @current_entity.invalid?
+    #   @report_files[current_entity_type()][:is_valid] << get_entity_information() + [@current_entity.errors.as_json()]
+    # end
 
-  def missing_metadata_values(entity)
+    unless is_entity_valid?()
+      @report_files[current_entity_type()][:is_valid] << get_entity_information() + [@current_entity_errors.to_json]
+    end
 
   end
 
@@ -170,6 +286,11 @@ class EraAuditReportGeneration
     end
   end
 
+  def set_current_entity(entity)
+    @current_entity = entity
+    @current_entity_errors = {}
+  end
+
   def run_reports
 
     begin
@@ -179,7 +300,9 @@ class EraAuditReportGeneration
       Collection.find_each do |collection| 
         if collection.member_objects.size > 0
           collection.member_objects.each do |entity|
-            @current_entity = entity
+            
+            set_current_entity(entity)
+
             process_entity_reports()
             @report_files[current_entity_type()][:community_collection] << [collection.path, @current_entity.class.name] + get_entity_information()
             @processed_entity_count += 1
