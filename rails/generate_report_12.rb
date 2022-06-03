@@ -14,6 +14,8 @@ missing_community_collection_report = {community: [], collection: []}
     klass.find_each do |entity|
       entity.member_of_paths.each do |pair|
         missing_community_collection = false
+        # When splitting the member of paths pair, the first id is for community
+        # and second one is for collection
         community_collection = pair.split('/')
 
         begin 
