@@ -9,7 +9,7 @@ missing_community_collection_report = {community: [], collection: []}
   entity_type = klass.name.underscore
   entity_attributes = klass.first.attributes.keys
   entity_headers = entity_attributes.map {|key| klass.rdf_annotation_for_attr(key).present? ? RDF::URI(klass.rdf_annotation_for_attr(key).first.predicate).pname.to_s : key }
-  file_name = root_directory + '/report_12_' + entity_type + '_community_collection_pairs_that_dont_exist' + Time.now.to_formatted_s(:number) + '.csv'
+  file_name = root_directory + '/report_12_' + entity_type + '_community_collection_pairs_that_dont_exist_' + Time.now.to_formatted_s(:number) + '.csv'
   CSV.open(file_name, 'wb', write_headers: true, headers: entity_headers + ['Community errors', 'Collection errors']) do |csv|
     klass.find_each do |entity|
       entity.member_of_paths.each do |pair|
