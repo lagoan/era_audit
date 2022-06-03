@@ -9,10 +9,10 @@ end
 
 file_name = root_directory + '/report_13_' + 'communities_with_no_description_' + Time.now.to_formatted_s(:number) + '.csv'
 
-CSV.open(file_name, 'wb', write_headers: true, headers: ['Community ID', 'Community URL']) do |csv|
+CSV.open(file_name, 'wb', write_headers: true, headers: ['Community title', 'Community URL']) do |csv|
   Community.find_each do |community|
     unless community.description.present?
-      csv << [community.id, get_community_url(community)]
+      csv << [community.title, get_community_url(community)]
     end
   end
 end
