@@ -1,62 +1,64 @@
-
 # Report 5
 
-root_directory = "./era_audit/"
-$custom_error_report = {custom: {}, oai: {}}
+root_directory = './era_audit/'
+$custom_error_report = { custom: {}, oai: {} }
+
+def get_entity_url(entity)
+  # Example
+  # https://era.library.ualberta.ca/items/864711f5-3021-455d-9483-9ce956ee4e78
+  format('https://era.library.ualberta.ca/%{entity_type}/%{entity_id}', entity_type: entity.class.table_name,
+                                                                        entity_id: entity.id)
+end
 
 def is_entity_valid?(entity)
   # Clear custom error report so we can use it for each class instance
-  $custom_error_report = {custom: {}, oai: {}}
+  $custom_error_report = { custom: {}, oai: {} }
 
-
-  is_valid = if entity.class == Item
-    is_item_valid?(entity)
-  elsif entity.class == Thesis
-    is_thesis_valid?(entity)
-  end
+  is_valid = if entity.instance_of?(Item)
+               is_item_valid?(entity)
+             elsif entity.instance_of?(Thesis)
+               is_thesis_valid?(entity)
+             end
 
   # Cleanup unused error messages
-  $custom_error_report.delete(:custom) if $custom_error_report[:custom].length == 0
-  $custom_error_report.delete(:oai) if $custom_error_report[:oai].length == 0
+  $custom_error_report.delete(:custom) if $custom_error_report[:custom].length.zero?
+  $custom_error_report.delete(:oai) if $custom_error_report[:oai].length.zero?
 
   is_valid
-
 end
 
 def is_item_valid?(entity)
   valid = true
-    # creator - Checked by system
-    # subject - Checked by system
-    # created - Checked by system
-    # language - Checked by system
-    # title - Checked by system
-    # entity_errors[:manual] = {} unless entity_errors[:manual]
+  # creator - Checked by system
+  # subject - Checked by system
+  # created - Checked by system
+  # language - Checked by system
+  # title - Checked by system
+  # entity_errors[:manual] = {} unless entity_errors[:manual]
 
-    # type item_type - Checked by system
-    # rights - Checked by system
-    # Other required fields:
-    #   doi (not user-supplied, created by Jupiter when item is deposited)
+  # type item_type - Checked by system
+  # rights - Checked by system
+  # Other required fields:
+  #   doi (not user-supplied, created by Jupiter when item is deposited)
 
-    unless entity.doi.present?
-      $custom_error_report[:doi] = ["cant' be blank"]
-      valid = false
-    end
+  unless entity.doi.present?
+    $custom_error_report[:doi] = ["cant' be blank"]
+    valid = false
+  end
 
-    #   Checked by system
-    #   sortYear - this was not required by metadata but needed for UI faceting I think (not user-supplied but rather derived from created date)
-    
-    #   Checked by system
-    #   memberOf (community_id, collection_id)
+  #   Checked by system
+  #   sortYear - this was not required by metadata but needed for UI faceting I think (not user-supplied but rather derived from created date)
 
+  #   Checked by system
+  #   memberOf (community_id, collection_id)
 
-    #   visibility (before I think this was called status, i.e. published, draft).
-    unless entity.visibility.present?
-      $custom_error_report[:visibility] = ["cant' be blank"]
-      valid = false
-    end
+  #   visibility (before I think this was called status, i.e. published, draft).
+  unless entity.visibility.present?
+    $custom_error_report[:visibility] = ["cant' be blank"]
+    valid = false
+  end
 
-    valid
-  
+  valid
 end
 
 def is_thesis_valid?(entity)
@@ -114,27 +116,24 @@ end
 [Item, Thesis].each do |klass|
   entity_type = klass.name.underscore
   entity_attributes = klass.first.attributes.keys
-  entity_headers = entity_attributes.map {|key| klass.rdf_annotation_for_attr(key).present? ? RDF::URI(klass.rdf_annotation_for_attr(key).first.predicate).pname.to_s : key }
+  entity_headers = entity_attributes.map do |key|
+    klass.rdf_annotation_for_attr(key).present? ? RDF::URI(klass.rdf_annotation_for_attr(key).first.predicate).pname.to_s : key
+  end
   file_name = root_directory + '/report_5_' + entity_type + '_missing_required_metadata_field_' + Time.now.to_formatted_s(:number) + '.csv'
-  CSV.open(file_name, 'wb', write_headers: true, headers: entity_headers + ['Errors']) do |csv|
+  CSV.open(file_name, 'wb', write_headers: true, headers: entity_headers + %w[Errors URL]) do |csv|
     klass.find_each do |entity|
       error_report = {}
       system_valid = entity.valid?
       manual_invalid = is_entity_valid?(entity)
 
       # entity.valid?
-      unless system_valid
-        error_report[:system] = entity.errors.messages
-      end
+      error_report[:system] = entity.errors.messages unless system_valid
 
-      unless manual_invalid
-        error_report[:manual] = $custom_error_report
-      end
+      error_report[:manual] = $custom_error_report unless manual_invalid
 
       unless system_valid && manual_invalid
-        csv << entity.values_at(entity_attributes) + [error_report.to_json]
+        csv << entity.values_at(entity_attributes) + [error_report.to_json, get_entity_url(entity)]
       end
-      
     end
   end
 end
