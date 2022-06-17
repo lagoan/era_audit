@@ -6,7 +6,7 @@
 + Report 2: List of file types
 + Report 3: List of records containing compressed files
 + Report 4: List of all multi file records
-+ Report 5: List of records missing a required metadata filed
++ Report 5: List of records missing a required metadata field
 + Report 6: List of all community-collection pairs and all items within collections
 + Report 7: List of all empty collections, listing community-collection pairs
 + Report 8: List CCID-protected items
