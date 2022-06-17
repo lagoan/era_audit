@@ -123,15 +123,15 @@ end
   CSV.open(file_name, 'wb', write_headers: true, headers: entity_headers + %w[Errors URL]) do |csv|
     klass.find_each do |entity|
       error_report = {}
-      system_valid = entity.valid?
-      manual_invalid = is_entity_valid?(entity)
+      rails_valid = entity.valid?
+      additional_valid = is_entity_valid?(entity)
 
       # entity.valid?
-      error_report[:system] = entity.errors.messages unless system_valid
+      error_report[:rails_validation] = entity.errors.messages unless rails_valid
 
-      error_report[:manual] = $custom_error_report unless manual_invalid
+      error_report[:additional_validation] = $custom_error_report unless additional_valid
 
-      unless system_valid && manual_invalid
+      unless rails_valid && additional_valid
         csv << entity.values_at(entity_attributes) + [error_report.to_json, get_entity_url(entity)]
       end
     end
