@@ -10,7 +10,7 @@ def get_entity_url(entity)
                                                                         entity_id: entity.id)
 end
 
-def is_entity_valid?(entity)
+def entity_valid?(entity)
   # Clear custom error report so we can use it for each class instance
   $custom_error_report = { custom: {}, oai: {} }
 
@@ -124,7 +124,7 @@ end
     klass.find_each do |entity|
       error_report = {}
       rails_valid = entity.valid?
-      additional_valid = is_entity_valid?(entity)
+      additional_valid = entity_valid?(entity)
 
       # entity.valid?
       error_report[:rails_validation] = entity.errors.messages unless rails_valid
