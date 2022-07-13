@@ -9,10 +9,10 @@ end
 
 file_name = root_directory + '/report_16_' + 'collections_with_no_description_' + Time.now.to_formatted_s(:number) + '.csv'
 
-CSV.open(file_name, 'wb', write_headers: true, headers: ['Collection title', 'Collection URL']) do |csv|
+CSV.open(file_name, 'wb', write_headers: true, headers: ['Collection title', 'Collection URL', 'id']) do |csv|
   Collection.where(description: ['', nil]).in_batches do |group|
     group.each do |collection|
-      csv << [collection.title, get_collection_url(collection)]
+      csv << [collection.title, get_collection_url(collection), collection.id]
     end
   end
 end

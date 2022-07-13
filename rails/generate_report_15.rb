@@ -9,8 +9,8 @@ end
 
 file_name = root_directory + '/report_15_' + 'collections_with_5_or_fewer_entities_' + Time.now.to_formatted_s(:number) + '.csv'
 
-CSV.open(file_name, 'wb', write_headers: true, headers: ['Collection title', 'Collection URL']) do |csv|
+CSV.open(file_name, 'wb', write_headers: true, headers: ['Collection title', 'Collection URL', 'id']) do |csv|
   Collection.find_each do |collection|
-    csv << [collection.title, get_collection_url(collection)] unless collection.member_objects.length > 5
+    csv << [collection.title, get_collection_url(collection), collection.id] unless collection.member_objects.length > 5
   end
 end

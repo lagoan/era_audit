@@ -1,0 +1,8 @@
+Naming/VariableNumber:
+  EnforcedStyle: snake_case
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false

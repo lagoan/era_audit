@@ -8,8 +8,8 @@ end
 
 file_name = root_directory + '/report_17_' + 'communities_with_no_collections_' + Time.now.to_formatted_s(:number) + '.csv'
 
-CSV.open(file_name, 'wb', write_headers: true, headers: ['Community title', 'Community URL']) do |csv|
+CSV.open(file_name, 'wb', write_headers: true, headers: ['Community title', 'Community URL', 'id']) do |csv|
   Community.find_each do |community|
-    csv << [community.title, get_community_url(community)] unless community.collections.present?
+    csv << [community.title, get_community_url(community), community.id] unless community.collections.present?
   end
 end

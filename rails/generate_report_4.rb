@@ -18,7 +18,7 @@ end
   file_name = root_directory + '/report_4_' + entity_type + '_with_multiple_files_' + Time.now.to_formatted_s(:number) + '.csv'
   CSV.open(file_name, 'wb', write_headers: true, headers: entity_headers + ['URL', 'Files metadata']) do |csv|
     klass.find_each do |entity|
-      unless entity.files.empty?
+      if entity.files.count > 1
         files_metadata = []
         entity.files.each do |file|
           files_metadata << file.blob.to_json

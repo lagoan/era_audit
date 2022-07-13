@@ -8,8 +8,8 @@ end
 
 file_name = root_directory + '/report_14_' + 'communities_with_no_logo_' + Time.now.to_formatted_s(:number) + '.csv'
 
-CSV.open(file_name, 'wb', write_headers: true, headers: ['Community title', 'Community URL']) do |csv|
+CSV.open(file_name, 'wb', write_headers: true, headers: ['Community title', 'Community URL', 'id']) do |csv|
   Community.find_each do |community|
-    csv << [community.title, get_community_url(community)] unless community.logo.attached?
+    csv << [community.title, get_community_url(community), community.id] unless community.logo.attached?
   end
 end

@@ -24,7 +24,7 @@ begin
       community.title,
       Rails.application.routes.url_helpers.community_url(community.id),
       collection.title,
-      Rails.application.routes.url_helpers.collection_url(collection.id),
+      Rails.application.routes.url_helpers.community_collection_url(community.id, collection.id),
       collection.path
     ]
   end
