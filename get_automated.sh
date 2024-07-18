@@ -1,0 +1,1 @@
+ls rails/reports/* | sed -r 's/.+(report_([0-9]+))(_item|_thesis|).+$/\.\/compare_files_ids.rb id \0 solr\/reports\/\1\3.csv > results\/result_\2\3.txt/' | sed -r 's/item.csv >/items.csv >/' | sed -r 's/thesis.csv >/theses.csv >/'

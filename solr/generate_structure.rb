@@ -92,7 +92,6 @@ def add_entities_to_collections(entity_type, data)
   end
 end
 
-
 logger.info('Generating report 12')
 add_entities_to_collections('items', data)
 add_entities_to_collections('theses', data)
@@ -121,8 +120,7 @@ end
 def get_report_1(entity_type, data)
   CSV.open("reports/report_1_#{entity_type}.csv", 'wb', write_headers: true, headers: ['id']) do |csv|
     data[entity_type.to_sym].each_value do |entity|
-      csv << [entity['id']] if entity[:filesets].count > 0
-      byebug if entity['id'] == 'ed021482-3cb4-4ebf-b535-e5553682a76d'
+      csv << [entity['id']] if entity[:filesets].count.zero?
     end
   end
 end
@@ -173,6 +171,9 @@ def get_report_3(entity_type, data)
       catch :found_compressed_file do
         entity[:filesets].each_value do |fileset|
           m = fileset['sitemap_link_ssim'].match(/.+type="(.*)".+/)
+          # ^.+type=\\?"(.+)\\"?.+?$
+          # m = fileset['sitemap_link_ssim'].match(/^.+type=\\?"(.+)\\"?.+?$/)
+          # m = fileset['sitemap_link_ssim'].match(/^.+type="(.+)".+$/)
 
           if !m.captures.count.zero? && compressed_file_types.include?(m[1])
             csv << [entity['id']]
@@ -211,7 +212,7 @@ logger.info('Missing report 5')
 
 def get_report_6(entity_type, data)
   CSV.open("reports/report_6_#{entity_type}.csv", 'wb', write_headers: true,
-                                                headers: ['community id', 'collection id', 'id']) do |csv|
+                                                        headers: ['community id', 'collection id', 'id']) do |csv|
     data[:communities].each_value do |community|
       # byebug
       community[:collections].each_value do |collection|
@@ -229,20 +230,22 @@ get_report_6('theses', data)
 
 # + Report 7: List of all empty collections, listing community-collection pairs
 
-def get_report_7(entity_type, data)
-  CSV.open("reports/report_7_#{entity_type}.csv", 'wb', write_headers: true,
-                                                headers: ['community id', 'collection id']) do |csv|
+def get_report_7(data)
+  CSV.open('reports/report_7.csv',
+           'wb',
+           write_headers: true,
+           headers: ['community id', 'collection id', 'Community Collection pair']) do |csv|
     data[:communities].each_value do |community|
       community[:collections].each_value do |collection|
-        csv << [community['id'], collection['id']] if collection[:entities].count.zero?
+        pair = "#{community['id']}/#{collection['id']}"
+        csv << [community['id'], collection['id'], pair] if collection[:entities].count.zero?
       end
     end
   end
 end
 
 logger.info('Generating report 7')
-get_report_7('items', data)
-get_report_7('theses', data)
+get_report_7(data)
 
 # + Report 8: List CCID-protected items
 
@@ -364,7 +367,8 @@ logger.info('Skipping 16')
 # + Report 17: List of communities with no collections (community name, URL)
 
 def get_report_17(data)
-  CSV.open('reports/report_17.csv', 'wb', write_headers: true, headers: ['community id', 'collection id', 'id']) do |csv|
+  CSV.open('reports/report_17.csv', 'wb', write_headers: true,
+                                          headers: ['community id', 'collection id', 'id']) do |csv|
     data[:communities].each_value do |community|
       csv << [community['id']] if community[:collections].count.zero?
     end
@@ -373,4 +377,3 @@ end
 
 logger.info('Generating report 17')
 get_report_17(data)
-
