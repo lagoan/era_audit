@@ -4,8 +4,7 @@ root_directory = './era_audit/'
 def get_entity_url(entity)
   # Example
   # https://era.library.ualberta.ca/items/864711f5-3021-455d-9483-9ce956ee4e78
-  format('https://era.library.ualberta.ca/%{entity_type}/%{entity_id}', entity_type: entity.class.table_name,
-                                                                        entity_id: entity.id)
+  "https://era.library.ualberta.ca/items/#{entity.id}"
 end
 
 [Item, Thesis].each do |klass|

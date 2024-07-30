@@ -3,8 +3,7 @@
 def get_entity_url(entity)
   # Example
   # https://era.library.ualberta.ca/items/864711f5-3021-455d-9483-9ce956ee4e78
-  format('https://era.library.ualberta.ca/%{entity_type}/%{entity_id}', entity_type: entity.class.table_name,
-                                                                        entity_id: entity.id)
+  "https://era.library.ualberta.ca/items/#{entity.id}"
 end
 
 begin
@@ -43,7 +42,7 @@ begin
     headers: community_collection_headers + ['URL'] + item_headers
   )
   thesis_csv = CSV.open(
-    root_directory + '/report_6_thesis' + + '_community_collection' + Time.now.to_formatted_s(:number) + '.csv', 'wb',
+    root_directory + '/report_6_thesis' + + '_community_collection_' + Time.now.to_formatted_s(:number) + '.csv', 'wb',
     write_headers: true,
     # headers: ['Community Collection pair', 'URL'] + thesis_headers
     headers: community_collection_headers + ['URL'] + thesis_headers

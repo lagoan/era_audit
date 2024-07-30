@@ -4,7 +4,7 @@ root_directory = './era_audit/'
 
 entity_file_types = {}
 
-file_name = root_directory + '/report_2_' + 'entity_file_types' + Time.now.to_formatted_s(:number) + '.csv'
+file_name = root_directory + '/report_2_' + 'entity_file_types_' + Time.now.to_formatted_s(:number) + '.csv'
 
 [Item, Thesis].each do |klass|
   klass.find_each do |entity|
